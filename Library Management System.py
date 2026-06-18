@@ -10,57 +10,49 @@ class Book:
     def return_book(self):
         self.__is_borrowed = False
 
-    def check_avb(self):
-        if self.__is_borrowed == False:
-            return True
-        else:
-            return False
+    def is_available(self):
+        return not self.__is_borrowed
 
     def display_info(self):
-        print(self.title, self.author, self.__is_borrowed)
+        status = "Available" if self.is_available() else "Borrowed"
+        print(f"'{self.title}' by {self.author} — {status}")
 
-Book1 = Book("book1", "one")
-Book2 = Book("book2", "two")
-Book3 = Book("book3", "three")
-Book4 = Book("book4", "four")
-Book5 = Book("book5", "five")
-Book6 = Book("book6", "six")
 
 class User:
+    BORROW_LIMIT = 3
+
     def __init__(self, name):
         self.name = name
         self.borrowed_books = []
 
     def borrow_book(self, book):
-        if book.check_avb() == True:
+        if not book.is_available():
+            print(f"'{book.title}' is not available.")
+        elif len(self.borrowed_books) >= self.BORROW_LIMIT:
+            print(f"{self.name} has reached the borrow limit ({self.BORROW_LIMIT} books).")
+        else:
             self.borrowed_books.append(book)
             book.borrow()
-        else:
-            print("Dumb idiot the book is taken")
+            print(f"{self.name} borrowed '{book.title}'.")
 
     def return_book(self, book):
-        if book in self.borrowed_books:
-            self.borrowed_books.pop(book)
-            book.return_book()
+        if book not in self.borrowed_books:
+            print(f"{self.name} does not have '{book.title}'.")
         else:
-            print("you dont have this book bro")
+            self.borrowed_books.remove(book)  # fix: was pop(book)
+            book.return_book()
+            print(f"{self.name} returned '{book.title}'.")
 
     def show_books(self):
-        print(self.borrowed_books)
+        if not self.borrowed_books:
+            print(f"{self.name} has no borrowed books.")
+        else:
+            titles = ", ".join(f"'{b.title}'" for b in self.borrowed_books)
+            print(f"{self.name}'s borrowed books: {titles}")
+
 
 class PremiumUser(User):
+    BORROW_LIMIT = 10
+
     def __init__(self, name):
-        User.__init__(self, name)
-        self.borrow_limit = 5
-    
-    def borrow_book(self, book):
-        if book.check_avb() == True and len(self.borrowed_books) < 5:
-            self.borrowed_books.append(book)
-            book.borrow()
-        
-        elif book.check_avb() == False:
-            print("Book isn't available idiot")
-        else:
-            print("You have reached the maximum borrow limit")
-User1 = User("User")
-User2 = PremiumUser("PremiumUser")
+        super().__init__(name)  # fix: was User.__init__(self, name)
